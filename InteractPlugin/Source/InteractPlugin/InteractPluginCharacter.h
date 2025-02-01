@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "InteractionPlugin/Public/InteractionComponent.h"
 #include "InteractPluginCharacter.generated.h"
 
 class USpringArmComponent;
@@ -44,6 +45,12 @@ class AInteractPluginCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UInteractionComponent* InteractionComponent;
+
 public:
 	AInteractPluginCharacter();
 	
@@ -63,6 +70,9 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
+private: 
+	void Interact();
 
 public:
 	/** Returns CameraBoom subobject **/

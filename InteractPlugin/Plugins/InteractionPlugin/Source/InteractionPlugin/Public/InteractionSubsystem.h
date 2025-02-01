@@ -24,6 +24,6 @@ public:
 
 private:
     TArray<class AInteractableActor*> Interactables;
-    TUniquePtr<RadarRunnable> RadarThread;
+    TUniquePtr<class RadarRunnable> RadarThread;
     FRunnableThread* Thread = nullptr;
 };

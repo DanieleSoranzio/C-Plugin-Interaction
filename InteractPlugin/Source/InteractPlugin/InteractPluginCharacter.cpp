@@ -50,6 +50,7 @@ AInteractPluginCharacter::AInteractPluginCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
@@ -127,4 +128,12 @@ void AInteractPluginCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+void AInteractPluginCharacter::Interact()
+{
+    if (InteractionComponent)
+    {
+        InteractionComponent->PerformInteraction();
+    }
+    UE_LOG(LogTemp, Warning, TEXT("Interact pressed!"));
 }
