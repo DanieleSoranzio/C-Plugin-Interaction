@@ -21,11 +21,16 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void PerformInteraction();
 
+    UFUNCTION(BlueprintCallable, Category = "Radar")
+    void UseRadar(AActor* PlayerActor, float RadarRange);
+
 private:
     void FindInteractableActor();
 
     UPROPERTY(EditAnywhere, Category = "Interaction")
     float InteractionRange = 500.0f;
+
+    bool FlipFlop = true;
 
     AActor* CurrentInteractableActor = nullptr;
 };

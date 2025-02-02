@@ -2,6 +2,7 @@
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "DrawDebugHelpers.h"
 
 
@@ -28,25 +29,49 @@ uint32 RadarRunnable::Run()
     {
         if (World && PlayerActor)
         {
-            TArray<AActor*> FoundActors;
-            UGameplayStatics::GetAllActorsWithInterface(World, UInteractInterface::StaticClass(), FoundActors);
-
             TArray<AActor*> ActorsInRange;
+            FVector PlayerLocation = PlayerActor->GetActorLocation();
 
-            for (AActor* Actor : FoundActors)
+            
+            TArray<FOverlapResult> OverlapResults;
+            FCollisionQueryParams QueryParams;
+            QueryParams.AddIgnoredActor(PlayerActor);
+
+            // Esegue lo Sphere Overlap
+            bool bHit = World->OverlapMultiByObjectType(
+                OverlapResults,
+                PlayerLocation,
+                FQuat::Identity,
+                FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects),
+                FCollisionShape::MakeSphere(RadarRange),
+                QueryParams
+            );
+
+            if (bHit)
             {
-                if (Actor && Actor->GetDistanceTo(PlayerActor) <= RadarRange)
+                for (const FOverlapResult& Result : OverlapResults)
                 {
-                    ActorsInRange.Add(Actor);
+                    AActor* Actor = Result.GetActor();
+                    if (Actor && Actor->Implements<UInteractInterface>())
+                    {
+                        InteractableActors.Add(Actor);
+                    }
                 }
             }
 
-            // Blocca l'accesso alla lista degli oggetti interagibili
-            FScopeLock Lock(&Mutex);
-            InteractableActors = ActorsInRange;
+            // Debug: Stampa quanti attori sono stati trovati
+            UE_LOG(LogTemp, Warning, TEXT("Radar found %d actors"), ActorsInRange.Num());
+
+
+            {
+                FScopeLock Lock(&Mutex);
+                InteractableActors = ActorsInRange;
+            }
+
+            // Debug: Disegna la sfera visivamente nel mondo
+            DrawDebugSphere(World, PlayerLocation, RadarRange, 12, FColor::Blue, false, 0.5f);
         }
 
-        // Aspetta un po' prima di eseguire di nuovo la ricerca
         FPlatformProcess::Sleep(0.5f);
     }
 

@@ -18,24 +18,30 @@ void UInteractionSubsystem::RegisterInteractable(AInteractableActor* Interactabl
     if (Interactable)
     {
         Interactables.Add(Interactable);
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, FString::Printf(TEXT("Updated List of interactable to get: %d"), Interactables.Num()));
+        }
     }
 }
 
 void UInteractionSubsystem::HandleInteraction(AInteractableActor* Interactable, const FInteractionInfo& InteractionInfo)
 {
-    if (Interactable)
+    if (Interactable && Interactables.Contains(Interactable))
     {
-        UE_LOG(LogTemp, Warning, TEXT("Interacted with: %s at Location: %s"),
-            *InteractionInfo.ObjectName,
-            *InteractionInfo.Location.ToString());
+        Interactables.Remove(Interactable);
+        UE_LOG(LogTemp, Warning, TEXT("Interacted with: %s at Location: %s"), *InteractionInfo.ObjectName, *InteractionInfo.Location.ToString());
         if (GEngine) {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,
-                FString::Printf(TEXT("Interacted with: %s at Location: %s"),
-                    *InteractionInfo.ObjectName,
-                    *InteractionInfo.Location.ToString()));
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Interacted with: %s at Location: %s"), *InteractionInfo.ObjectName,  *InteractionInfo.Location.ToString()));
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, FString::Printf(TEXT("Number of Objects to still interact with: %d"), Interactables.Num()));
+        }
+        if (Interactables.Num() == 0.f)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, FString::Printf(TEXT("You collected every object! Objects Remaining: %d"), Interactables.Num()));
         }
     }
 }
+
 
 void UInteractionSubsystem::StartRadar(AActor* PlayerActor, float RadarRange)
 {
@@ -43,6 +49,9 @@ void UInteractionSubsystem::StartRadar(AActor* PlayerActor, float RadarRange)
     {
         RadarThread = MakeUnique<RadarRunnable>(GetWorld(), PlayerActor, RadarRange);
         Thread = FRunnableThread::Create(RadarThread.Get(), TEXT("RadarThread"));
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Radar Started")));
+        TArray<AActor*> InteractablesRadar = GetInteractableActorsInRange();
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, FString::Printf(TEXT("Number of Objects spotted with radar: %d"), InteractablesRadar.Num()));
     }
 }
 
@@ -50,6 +59,7 @@ void UInteractionSubsystem::StopRadar()
 {
     if (RadarThread.IsValid())
     {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Radar Stopped")));
         RadarThread->Stop();
         if (Thread)
         {

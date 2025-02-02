@@ -9,7 +9,11 @@ USTRUCT(BlueprintType)
 struct FInteractionInfo
 {
     GENERATED_BODY()
+
 public:
+  
+    FInteractionInfo(): ObjectName(TEXT("")), Location(FVector::ZeroVector),InteractionID(0),bIsActive(false) { }
+
     UPROPERTY(BlueprintReadWrite, Category = "Interaction")
     FString ObjectName;
 

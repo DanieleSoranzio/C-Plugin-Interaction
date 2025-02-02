@@ -4,6 +4,8 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "RadarRunnable.h"
 #include "InteractableActor.h"
+#include "Blueprint/UserWidget.h"
+#include "UObject/ConstructorHelpers.h"
 #include "InteractionSubsystem.generated.h"
 
 UCLASS()
@@ -12,6 +14,10 @@ class INTERACTIONPLUGIN_API UInteractionSubsystem : public UGameInstanceSubsyste
     GENERATED_BODY()
 
 public:
+
+    UPROPERTY(BlueprintReadWrite, Category = "Interaction")
+    TArray<class AInteractableActor*> Interactables;
+
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
 
@@ -23,7 +29,7 @@ public:
     void HandleInteraction(class AInteractableActor* Interactable, const FInteractionInfo& InteractionInfo);
 
 private:
-    TArray<class AInteractableActor*> Interactables;
+
     TUniquePtr<class RadarRunnable> RadarThread;
     FRunnableThread* Thread = nullptr;
 };
