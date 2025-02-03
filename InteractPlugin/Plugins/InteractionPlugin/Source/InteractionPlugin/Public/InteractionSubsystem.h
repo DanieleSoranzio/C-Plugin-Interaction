@@ -18,6 +18,9 @@ public:
     UPROPERTY(BlueprintReadWrite, Category = "Interaction")
     TArray<class AInteractableActor*> Interactables;
 
+    UPROPERTY(BlueprintReadWrite, Category = "Interaction")
+    UMaterialInterface* OverlayMaterialRadar;
+
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
 

@@ -7,8 +7,7 @@
 #include "DrawDebugHelpers.h"
 
 
-RadarRunnable::RadarRunnable(UWorld* InWorld, AActor* InPlayerActor, float InRadarRange)
-    : World(InWorld), PlayerActor(InPlayerActor), RadarRange(InRadarRange), bStopThread(false)
+RadarRunnable::RadarRunnable(UWorld* InWorld, AActor* InPlayerActor, float InRadarRange, UMaterialInterface* MaterialOverlay): World(InWorld), PlayerActor(InPlayerActor), RadarRange(InRadarRange),bStopThread(false), OverlayMaterialInstance(MaterialOverlay)
 {
 }
 
@@ -32,7 +31,7 @@ uint32 RadarRunnable::Run()
         {
             FVector PlayerLocation = PlayerActor->GetActorLocation();
 
-            // Main Thread For overlaping
+            // Eseguiamo l'overlap nel GameThread
             AsyncTask(ENamedThreads::GameThread, [this, PlayerLocation]()
                 {
                     if (!World || !PlayerActor) return;
@@ -50,7 +49,11 @@ uint32 RadarRunnable::Run()
                         QueryParams
                     );
 
+                    TArray<AActor*> ActorsToRemove;
                     TArray<AActor*> ActorsInRange;
+                   
+
+                    
                     if (bHit)
                     {
                         for (const FOverlapResult& Result : OverlapResults)
@@ -61,36 +64,84 @@ uint32 RadarRunnable::Run()
                                 if (!ActorsInRange.Contains(Actor))
                                 {
                                     ActorsInRange.Add(Actor);
+
+                                    
+                                    UStaticMeshComponent* MeshComp = Actor->FindComponentByClass<UStaticMeshComponent>();
+                                    if (MeshComp && !OverlayMaterials.Contains(Actor))
+                                    {
+                                        UMaterialInstanceDynamic* OverlayMaterial = UMaterialInstanceDynamic::Create(OverlayMaterialInstance, MeshComp);
+
+                                        if (OverlayMaterial)
+                                        {
+                                            MeshComp->SetOverlayMaterial(OverlayMaterial);
+
+                                            OverlayMaterials.Add(Actor, nullptr);
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+
                     if (GEngine)
                     {
-                        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Number of Objects spotted with radar: %d"), ActorsInRange.Num()));
+                        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Radar found %d actors"), ActorsInRange.Num()));
                     }
 
                     UE_LOG(LogTemp, Warning, TEXT("Radar found %d actors"), ActorsInRange.Num());
 
+                   
                     {
                         FScopeLock Lock(&Mutex);
                         InteractableActors = ActorsInRange;
                     }
 
+                   
                     DrawDebugSphere(World, PlayerLocation, RadarRange, 12, FColor::Blue, false, 0.5f);
+
+                    for (auto& Elem : OverlayMaterials)
+                    {
+                        if (!ActorsInRange.Contains(Elem.Key))
+                        {
+                            UStaticMeshComponent* MeshComp = Elem.Key->FindComponentByClass<UStaticMeshComponent>();
+                            if (MeshComp)
+                            {
+                                MeshComp->SetOverlayMaterial(nullptr);
+                            }
+                            ActorsToRemove.Add(Elem.Key);
+                        }
+                    }
+
+                    for (AActor* Actor : ActorsToRemove)
+                    {
+                        OverlayMaterials.Remove(Actor);
+                    }
+                    
                 });
         }
 
         FPlatformProcess::Sleep(0.5f);
-        
     }
 
     return 0;
 }
 void RadarRunnable::Stop()
 {
-    // Ferma il thread
+
     bStopThread = true;
+
+    AsyncTask(ENamedThreads::GameThread, [this]()
+        {
+            for (auto& Elem : OverlayMaterials)
+            {
+                UStaticMeshComponent* MeshComp = Elem.Key->FindComponentByClass<UStaticMeshComponent>();
+                if (MeshComp)
+                {
+                    MeshComp->SetOverlayMaterial(nullptr); // Remove overlay
+                }
+            }
+            OverlayMaterials.Empty(); // Clear the map
+        });
 }
 
 void RadarRunnable::Exit()

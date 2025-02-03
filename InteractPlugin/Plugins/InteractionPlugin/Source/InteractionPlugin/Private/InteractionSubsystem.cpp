@@ -47,7 +47,7 @@ void UInteractionSubsystem::StartRadar(AActor* PlayerActor, float RadarRange)
 {
     if (!RadarThread.IsValid())
     {
-        RadarThread = MakeUnique<RadarRunnable>(GetWorld(), PlayerActor, RadarRange);
+        RadarThread = MakeUnique<RadarRunnable>(GetWorld(), PlayerActor, RadarRange, OverlayMaterialRadar);
         Thread = FRunnableThread::Create(RadarThread.Get(), TEXT("RadarThread"));
         
         TArray<AActor*> InteractablesRadar = GetInteractableActorsInRange();

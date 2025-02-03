@@ -9,7 +9,7 @@
 class INTERACTIONPLUGIN_API RadarRunnable : public FRunnable
 {
 public:
-    RadarRunnable(UWorld* World, AActor* PlayerActor, float RadarRange);
+    RadarRunnable(UWorld* World, AActor* PlayerActor, float RadarRange, UMaterialInterface* InOverlayMaterial);
     virtual ~RadarRunnable();
 
     // FRunnable interface
@@ -29,4 +29,9 @@ private:
     TArray<AActor*> InteractableActors; // Lista degli oggetti interagibili trovati
     FThreadSafeBool bStopThread; // Flag per fermare il thread
     mutable FCriticalSection Mutex; // Mutex per la sincronizzazione dei dati
+
+    UPROPERTY()
+    UMaterialInterface* OverlayMaterialInstance;
+
+    TMap<AActor*, UMaterialInterface*> OverlayMaterials;
 };
