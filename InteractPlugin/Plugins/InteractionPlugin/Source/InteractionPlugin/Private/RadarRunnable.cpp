@@ -2,6 +2,7 @@
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "Engine/Engine.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "DrawDebugHelpers.h"
 
@@ -29,55 +30,63 @@ uint32 RadarRunnable::Run()
     {
         if (World && PlayerActor)
         {
-            TArray<AActor*> ActorsInRange;
             FVector PlayerLocation = PlayerActor->GetActorLocation();
 
-            
-            TArray<FOverlapResult> OverlapResults;
-            FCollisionQueryParams QueryParams;
-            QueryParams.AddIgnoredActor(PlayerActor);
-
-            // Esegue lo Sphere Overlap
-            bool bHit = World->OverlapMultiByObjectType(
-                OverlapResults,
-                PlayerLocation,
-                FQuat::Identity,
-                FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects),
-                FCollisionShape::MakeSphere(RadarRange),
-                QueryParams
-            );
-
-            if (bHit)
-            {
-                for (const FOverlapResult& Result : OverlapResults)
+            // Main Thread For overlaping
+            AsyncTask(ENamedThreads::GameThread, [this, PlayerLocation]()
                 {
-                    AActor* Actor = Result.GetActor();
-                    if (Actor && Actor->Implements<UInteractInterface>())
+                    if (!World || !PlayerActor) return;
+
+                    TArray<FOverlapResult> OverlapResults;
+                    FCollisionQueryParams QueryParams;
+                    QueryParams.AddIgnoredActor(PlayerActor);
+
+                    bool bHit = World->OverlapMultiByObjectType(
+                        OverlapResults,
+                        PlayerLocation,
+                        FQuat::Identity,
+                        FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects),
+                        FCollisionShape::MakeSphere(RadarRange),
+                        QueryParams
+                    );
+
+                    TArray<AActor*> ActorsInRange;
+                    if (bHit)
                     {
-                        InteractableActors.Add(Actor);
+                        for (const FOverlapResult& Result : OverlapResults)
+                        {
+                            AActor* Actor = Result.GetActor();
+                            if (Actor && Actor->Implements<UInteractInterface>())
+                            {
+                                if (!ActorsInRange.Contains(Actor))
+                                {
+                                    ActorsInRange.Add(Actor);
+                                }
+                            }
+                        }
                     }
-                }
-            }
+                    if (GEngine)
+                    {
+                        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Number of Objects spotted with radar: %d"), ActorsInRange.Num()));
+                    }
 
-            // Debug: Stampa quanti attori sono stati trovati
-            UE_LOG(LogTemp, Warning, TEXT("Radar found %d actors"), ActorsInRange.Num());
+                    UE_LOG(LogTemp, Warning, TEXT("Radar found %d actors"), ActorsInRange.Num());
 
+                    {
+                        FScopeLock Lock(&Mutex);
+                        InteractableActors = ActorsInRange;
+                    }
 
-            {
-                FScopeLock Lock(&Mutex);
-                InteractableActors = ActorsInRange;
-            }
-
-            // Debug: Disegna la sfera visivamente nel mondo
-            DrawDebugSphere(World, PlayerLocation, RadarRange, 12, FColor::Blue, false, 0.5f);
+                    DrawDebugSphere(World, PlayerLocation, RadarRange, 12, FColor::Blue, false, 0.5f);
+                });
         }
 
         FPlatformProcess::Sleep(0.5f);
+        
     }
 
     return 0;
 }
-
 void RadarRunnable::Stop()
 {
     // Ferma il thread

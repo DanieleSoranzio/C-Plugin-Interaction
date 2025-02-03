@@ -49,9 +49,13 @@ void UInteractionSubsystem::StartRadar(AActor* PlayerActor, float RadarRange)
     {
         RadarThread = MakeUnique<RadarRunnable>(GetWorld(), PlayerActor, RadarRange);
         Thread = FRunnableThread::Create(RadarThread.Get(), TEXT("RadarThread"));
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Radar Started")));
+        
         TArray<AActor*> InteractablesRadar = GetInteractableActorsInRange();
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, FString::Printf(TEXT("Number of Objects spotted with radar: %d"), InteractablesRadar.Num()));
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Radar Started")));
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, FString::Printf(TEXT("Number of Objects spotted with radar: %d"), InteractablesRadar.Num()));
+        }
     }
 }
 
