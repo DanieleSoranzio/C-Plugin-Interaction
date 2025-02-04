@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "InteractPluginCharacter.h"
+#include "InteractionPluginCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -16,7 +16,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AInteractPluginCharacter
 
-AInteractPluginCharacter::AInteractPluginCharacter()
+AInteractionPluginCharacter::AInteractionPluginCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -55,7 +55,7 @@ AInteractPluginCharacter::AInteractPluginCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
-void AInteractPluginCharacter::BeginPlay()
+void AInteractionPluginCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
@@ -73,7 +73,7 @@ void AInteractPluginCharacter::BeginPlay()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AInteractPluginCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AInteractionPluginCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
@@ -83,10 +83,10 @@ void AInteractPluginCharacter::SetupPlayerInputComponent(UInputComponent* Player
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AInteractPluginCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AInteractionPluginCharacter::Move);
 
 		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AInteractPluginCharacter::Look);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AInteractionPluginCharacter::Look);
 	}
 	else
 	{
@@ -94,7 +94,7 @@ void AInteractPluginCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	}
 }
 
-void AInteractPluginCharacter::Move(const FInputActionValue& Value)
+void AInteractionPluginCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -117,7 +117,7 @@ void AInteractPluginCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-void AInteractPluginCharacter::Look(const FInputActionValue& Value)
+void AInteractionPluginCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -129,7 +129,7 @@ void AInteractPluginCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
-void AInteractPluginCharacter::Interact()
+void AInteractionPluginCharacter::Interact()
 {
     if (InteractionComponent)
     {

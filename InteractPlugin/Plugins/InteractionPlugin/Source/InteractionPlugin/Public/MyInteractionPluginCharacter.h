@@ -1,12 +1,10 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "InteractionPlugin/Public/InteractionComponent.h"
-#include "InteractPluginCharacter.generated.h"
+#include "MyInteractionPluginCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -16,8 +14,8 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-UCLASS(config=Game)
-class AInteractPluginCharacter : public ACharacter
+UCLASS(config = Game)
+class AMyInteractionPluginCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -28,7 +26,7 @@ class AInteractPluginCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
-	
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -52,8 +50,8 @@ class AInteractPluginCharacter : public ACharacter
 	UInteractionComponent* InteractionComponent;
 
 public:
-	AInteractPluginCharacter();
-	
+	AMyInteractionPluginCharacter();
+
 
 protected:
 
@@ -62,16 +60,16 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
+
 
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	// To add mapping context
 	virtual void BeginPlay();
 
-private: 
+private:
 	void Interact();
 
 public:

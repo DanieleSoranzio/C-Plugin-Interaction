@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "InteractPluginGameMode.h"
-#include "InteractPluginCharacter.h"
+#include "InteractionPluginCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 AInteractPluginGameMode::AInteractPluginGameMode()

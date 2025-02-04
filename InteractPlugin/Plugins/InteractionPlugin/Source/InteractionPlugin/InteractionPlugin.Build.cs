@@ -38,6 +38,8 @@ public class InteractionPlugin : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+                "EnhancedInput",
+                "InputCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
